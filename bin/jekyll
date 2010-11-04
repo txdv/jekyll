@@ -77,6 +77,15 @@ opts = OptionParser.new do |opts|
       exit 0
     end
   end
+  
+  opts.on("--notify", "Show notify message") do
+    begin
+      options['notify'] = require 'libnotify'
+    rescue LoadError
+      puts 'Couldn\'t find the libnotify gem, ommiting notifications'
+      options['notify'] = false
+    end
+  end
 
   opts.on("--url [URL]", "Set custom site.url") do |url|
     options['url'] = url
@@ -136,6 +145,9 @@ if options['auto']
   dw.add_observer do |*args|
     t = Time.now.strftime("%Y-%m-%d %H:%M:%S")
     puts "[#{t}] regeneration: #{args.size} files changed"
+    if options['notify']
+      Libnotify.show :summary => "Jekyll #{Jekyll::VERSION}", :body => "[#{t}]\nregeneration: #{args.size} files changed"
+    end
     site.process
   end
 
